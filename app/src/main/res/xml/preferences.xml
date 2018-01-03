@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Bluetooth">
+        <ListPreference
+            android:key="bluetooth_device"
+            android:title="Select Bluetooth Device"
+            android:summary="%s"/>
+    </PreferenceCategory>
+
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="example_switch"
+        android:summary="@string/switch_summary"
+        android:title="@string/switch_title" />
+</PreferenceScreen>

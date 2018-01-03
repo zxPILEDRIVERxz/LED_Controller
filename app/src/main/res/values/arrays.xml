@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="Transitions">
+        <item>Instant</item>
+        <item>Demo</item>
+        <item>Transition</item>
+        <item>ColorWipe</item>
+    </string-array>
+    <string-array name="TransitionMode">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+</resources>
