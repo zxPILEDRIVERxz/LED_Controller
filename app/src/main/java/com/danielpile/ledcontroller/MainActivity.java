@@ -15,13 +15,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
+
 public class MainActivity extends AppCompatActivity {
     public TBlue blu;
-
-    public TBlue getTBlue(){
-        return this.blu;
-    }
+    final String MY_HC06 = "20:15:08:10:86:72";
     String DEVICE_ADDRESS;
+    Boolean DEVICE_PREF_RESUME_STARTUP;
+    String DEVICE_PREF_BRIGHTNESS;
+    String DEVICE_PREF_COLOR_DELAY;
 
     @Override
     protected void onPause() {
@@ -37,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if(savedInstanceState == null) {
             getFragmentManager().beginTransaction()
@@ -46,9 +48,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        DEVICE_ADDRESS = sharedPref.getString(SettingsActivity.KEY_PREF_BLUETOOTH_ADDRESS, "");
-        Toast.makeText(this, DEVICE_ADDRESS.toString(), Toast.LENGTH_SHORT).show();
 
         blu = new TBlue(this);
 
@@ -63,12 +62,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void initializeBlu() {
+        try {
+            int resume_startup = (DEVICE_PREF_RESUME_STARTUP) ? 1 : 0;
+            String command = 25 + "," + resume_startup + "\n";
+            Log.d("Derp",command);
+            blu.write(command);
+            int brightness = Integer.valueOf(DEVICE_PREF_BRIGHTNESS);
+            command = 26 + "," + brightness + "\n";
+            Log.d("Derp",command);
+            blu.write(command);
+            int delay = Integer.valueOf(DEVICE_PREF_COLOR_DELAY);
+            command = 27 + "," + delay + "\n";
+            Log.d("Derp",command);
+            blu.write(command);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void onResume()
     {
         // TODO Auto-generated method stub
         super.onResume();
-        new ConnectBlu().execute("");
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        DEVICE_ADDRESS = sharedPref.getString(SettingsActivity.KEY_PREF_BLUETOOTH_ADDRESS, "");
+        DEVICE_PREF_RESUME_STARTUP = sharedPref.getBoolean(SettingsActivity.KEY_PREF_RESUME_STARTUP, true);
+        DEVICE_PREF_BRIGHTNESS = sharedPref.getString(SettingsActivity.KEY_PREF_BRIGHTNESS, "");
+        DEVICE_PREF_COLOR_DELAY = sharedPref.getString(SettingsActivity.KEY_PREF_COLOR_DELAY, "");
+        Log.d("Preferences","BRIGHTNESS: " + DEVICE_PREF_BRIGHTNESS);
+        Log.d("Preferences","DELAY: " + DEVICE_PREF_COLOR_DELAY);
+        new ConnectBlu(this).execute("");
     }
 
     @Override
@@ -95,46 +120,53 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private class ConnectBlu extends AsyncTask<String, Void, Boolean> {
+    private static class ConnectBlu extends AsyncTask<String, Void, Boolean> {
+        private WeakReference<MainActivity> activityReference;
 
-        private ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+        // only retain a weak reference to the activity
+        ConnectBlu(MainActivity context) {
+            activityReference = new WeakReference<>(context);
+            dialog = new ProgressDialog(activityReference.get());
+        }
+
+        private ProgressDialog dialog;
 
         @Override
         protected void onPreExecute() {
-            this.dialog.setMessage("Please wait");
-            this.dialog.show();
+
+            dialog.setMessage("Please wait");
+            dialog.show();
         }
 
         @Override
         protected Boolean doInBackground(final String... args) {
             try {
-                blu.close();
+                activityReference.get().blu.close();
             } catch (Exception e) {
                 Log.e("tag", "error", e);
             }
             try {
-                if (TextUtils.isEmpty(DEVICE_ADDRESS)) {
-                    Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Please select bluetooth device in settings", Snackbar.LENGTH_LONG)
+                if (TextUtils.isEmpty(activityReference.get().DEVICE_ADDRESS)) {
+                    Snackbar.make(activityReference.get().findViewById(R.id.myCoordinatorLayout), "Please select bluetooth device in settings", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 } else{
-                    if (!blu.isConnected()) {
+                    if (!activityReference.get().blu.isConnected()) {
                         try {
-                            String mac = "20:15:08:10:86:72";
-                            boolean connected = blu.connect(DEVICE_ADDRESS);
+                            boolean connected = activityReference.get().blu.connect(activityReference.get().DEVICE_ADDRESS);
                             if (connected) {
-                                Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Connected to " + mac, Snackbar.LENGTH_LONG)
+                                Snackbar.make(activityReference.get().findViewById(R.id.myCoordinatorLayout), "Connected to " + activityReference.get().blu.address, Snackbar.LENGTH_LONG)
                                         .setAction("Action", null).show();
                             }else{
-                                Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Failed to connect to " + mac, Snackbar.LENGTH_LONG)
+                                Snackbar.make(activityReference.get().findViewById(R.id.myCoordinatorLayout), "Failed to connect to " + activityReference.get().blu.address, Snackbar.LENGTH_LONG)
                                         .setAction("Action", null).show();
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Failed to connect", Snackbar.LENGTH_LONG)
+                            Snackbar.make(activityReference.get().findViewById(R.id.myCoordinatorLayout), "Failed to connect", Snackbar.LENGTH_LONG)
                                     .setAction("Action", null).show();
                         }
                     } else {
-                        Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Already Connected!", Snackbar.LENGTH_LONG)
+                        Snackbar.make(activityReference.get().findViewById(R.id.myCoordinatorLayout), "Already Connected!", Snackbar.LENGTH_LONG)
                                 .setAction("Action", null).show();
                     }
                 }
@@ -148,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(final Boolean success) {
+            activityReference.get().initializeBlu();
 
             if (dialog.isShowing()) {
                 dialog.dismiss();

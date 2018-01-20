@@ -2,14 +2,50 @@
 <resources>
     <string-array name="Transitions">
         <item>Instant</item>
-        <item>Demo</item>
-        <item>Transition</item>
+        <item>Fade</item>
         <item>ColorWipe</item>
     </string-array>
     <string-array name="TransitionMode">
         <item>0</item>
         <item>1</item>
         <item>2</item>
-        <item>3</item>
+    </string-array>
+
+    <string-array name="Scenes">
+        <item>Static</item>
+        <item>ColorWheel</item>
+        <item>Breathe</item>
+    </string-array>
+
+    <string-array name="scene_mode">
+        <item>0</item>
+        <item>3</item><!--Demo-->
+        <item>4</item>
+    </string-array>
+    <string-array name="pref_list_delay_entries">
+        <item>10ms</item>
+        <item>20ms</item>
+        <item>30ms</item>
+        <item>40ms</item>
+        <item>50ms</item>
+    </string-array>
+    <string-array name="pref_list_delay_values">
+        <item>10</item>
+        <item>20</item>
+        <item>30</item>
+        <item>40</item>
+        <item>50</item>
+    </string-array>
+    <string-array name="pref_list_brightness_entries">
+        <item>25%</item>
+        <item>50%</item>
+        <item>75%</item>
+        <item>100%</item>
+    </string-array>
+    <string-array name="pref_list_brightness_values">
+        <item>63</item>
+        <item>127</item>
+        <item>190</item>
+        <item>255</item>
     </string-array>
 </resources>

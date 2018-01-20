@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceScreen;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -26,7 +27,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import android.support.v7.preference.SeekBarPreference;
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
  * handset devices, settings are presented as a single list. On tablets,
@@ -41,6 +42,10 @@ import java.util.Map;
 public class SettingsActivity extends AppCompatPreferenceActivity {
 
     public static final String KEY_PREF_BLUETOOTH_ADDRESS = "bluetooth_devices";
+    public static final String KEY_PREF_RESUME_STARTUP = "resume_startup";
+    public static final String KEY_PREF_BRIGHTNESS = "list_brightness";
+    public static final String KEY_PREF_COLOR_DELAY = "list_delay";
+    MainActivity mainActivity;
 
     protected static void setListPreferenceData(ListPreference lp, String[] entries, String[] entryValues) {
         try {
@@ -51,6 +56,45 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             e.printStackTrace();
         }
     }
+
+    private static Preference.OnPreferenceChangeListener changeListener = new Preference.OnPreferenceChangeListener() {
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            // Code goes here
+            return true;
+        }
+    };
+
+    private static Preference.OnPreferenceClickListener clickListener = new Preference.OnPreferenceClickListener() {
+        @Override
+        public boolean onPreferenceClick(Preference preference) {
+            if (KEY_PREF_BLUETOOTH_ADDRESS.equals(preference.getKey())) {
+                try {
+                    List<Map<String,String>> deviceList;
+                    String[] bluetooth_entries;
+                    String[] bluetooth_values;
+
+                    TBlue blu = new TBlue();
+                    deviceList =  blu.getDeviceList();
+                    if(blu.connected){blu.close();}
+                    Integer i = 0;
+                    bluetooth_entries = new String[deviceList.size()];
+                    bluetooth_values = new String[deviceList.size()];
+                    for (Map<String, String> map : deviceList) {
+                        bluetooth_entries[i] = (map.get("NAME"));
+                        bluetooth_values[i] = (map.get("ADDRESS"));
+                        Log.i("Bluetooth","Device: " + bluetooth_entries[i] + " at MAC " + bluetooth_values[i]);
+                        i++;
+                    }
+
+                    setListPreferenceData((ListPreference)preference, bluetooth_entries, bluetooth_values);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
+        }
+    };
 
     /**
      * A preference value change listener that updates the preference's summary
@@ -208,8 +252,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("example_text"));
-            bindPreferenceSummaryToValue(findPreference("example_list"));
+            //bindPreferenceSummaryToValue(findPreference("list_brightness"));
+            //bindPreferenceSummaryToValue(findPreference("list_delay"));
         }
 
         @Override
@@ -308,6 +352,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             blu = new TBlue();
             deviceList =  blu.getDeviceList();
+            if(blu.connected){blu.close();}
             Integer i = 0;
             bluetooth_entries = new String[deviceList.size()];
             bluetooth_values = new String[deviceList.size()];
@@ -319,6 +364,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
 
             final ListPreference listPreference = (ListPreference) findPreference("bluetooth_devices");
+            listPreference.setOnPreferenceChangeListener(changeListener);
+            listPreference.setOnPreferenceClickListener(clickListener);
 
             // THIS IS REQUIRED IF YOU DON'T HAVE 'entries' and 'entryValues' in your XML
             if (listPreference != null)

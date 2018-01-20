@@ -4,6 +4,8 @@
     <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
     <ListPreference
         android:defaultValue="-1"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
         android:key="bluetooth_devices"
         android:title="Select Bluetooth Device"
         android:summary="%s"/>

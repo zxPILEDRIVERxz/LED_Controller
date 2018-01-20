@@ -15,10 +15,11 @@ public class DemoFragment extends PreferenceFragment {
   private static final String TAG = "DemoFragment";
 
   private static final String KEY_DEFAULT_COLOR = "default_color";
+    private static final String KEY_TRANSITION_MODE = "transition_mode";
+    private static final String KEY_SCENE_MODE = "scene_mode";
 
   long starttime = 0L;
   long elapsedtime = 0L;
-  TBlue blu;
   MainActivity mainActivity;
 
     @Override
@@ -31,6 +32,27 @@ public class DemoFragment extends PreferenceFragment {
     super.onCreate(savedInstanceState);
     addPreferencesFromResource(R.xml.main);
 
+    final ListPreference listPreference = (ListPreference) findPreference(KEY_SCENE_MODE);
+    listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            if(KEY_SCENE_MODE.equals(preference.getKey())){
+                Log.i("Preferences", newValue.toString());
+                if (newValue.equals("3")){
+                    Log.i("Preferences","Demo Mode");
+                    String command = newValue.toString();
+                    mainActivity.sendCommmand(command);
+                } else if(newValue.equals("4")){
+                    Log.i("Preferences","Breathe");
+                    String command = newValue.toString();
+                    mainActivity.sendCommmand(command);
+                }else if(newValue.equals("0")){
+                    Log.i("Preferences","Static Mode");
+                }
+            }
+            return true;
+        }
+    });
 
     // Example showing how we can get the new color when it is changed:
     final ColorPreference colorPreference = (ColorPreference) findPreference(KEY_DEFAULT_COLOR);
@@ -59,6 +81,8 @@ public class DemoFragment extends PreferenceFragment {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            ListPreference listPreference = (ListPreference) findPreference(KEY_SCENE_MODE);
+            listPreference.setValueIndex(0);
         }
         return true;
       }
